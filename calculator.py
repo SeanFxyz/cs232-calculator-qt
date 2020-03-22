@@ -2,7 +2,7 @@ import sys, re
 from enum import Enum
 from PySide2.QtCore import Qt, QCoreApplication, QFile, QObject
 from PySide2.QtUiTools import QUiLoader
-from PySide2.QtWidgets import QWidget, QLineEdit, QPushButton, QApplication, QVBoxLayout, QHBoxLayout
+from PySide2.QtWidgets import QWidget, QLabel, QLineEdit, QPushButton, QApplication, QVBoxLayout, QHBoxLayout
 
 class Op(Enum):
     NONE = 0
@@ -20,9 +20,10 @@ class Calculator(QObject):
         ui_file.open(QFile.ReadOnly)
         loader = QUiLoader()
         self.window = loader.load(ui_file)
-        # ui_file.close()
+        ui_file.close()
 
         self.accText = self.window.findChild(QLineEdit, 'accumulatorText')
+        self.storedText = self.window.findChild(QLabel, 'storedText')
 
         (self.window.findChild(QPushButton, 'zeroButton')
                 .clicked.connect(self.on_zeroButton_clicked))
@@ -54,12 +55,15 @@ class Calculator(QObject):
                 .clicked.connect(self.on_divideButton_clicked))
         (self.window.findChild(QPushButton, 'equalsButton')
                 .clicked.connect(self.on_equalsButton_clicked))
+        (self.window.findChild(QPushButton, 'clearButton')
+                .clicked.connect(self.on_clearButton_clicked))
 
 
         self.accumulator = 0
         self.stored_value = 0
         self.last_op = Op.NONE
         self.new_value = True
+        self.update()
 
     def on_zeroButton_clicked(self):
         self.accumulate(0)
@@ -108,10 +112,13 @@ class Calculator(QObject):
 
     def on_clearButton_clicked(self):
         if self.new_value:
-            self.store_value = 0
+            self.stored_value = 0
             self.last_op = Op.NONE
+            self.new_value == False
         else:
             self.accumulator = 0
+            self.new_value == True
+        self.update()
 
     def accumulate(self, n):
         if self.new_value:
@@ -123,8 +130,21 @@ class Calculator(QObject):
         self.accumulator = self.accumulator * 10 + n
         self.update()
 
+    def op_char(self, op):
+        if op == Op.NONE:
+            return ''
+        if op == Op.ADD:
+            return '+'
+        if op == Op.SUBTRACT:
+            return '-'
+        if op == Op.MULTIPLY:
+            return '*'
+        if op == Op.DIVIDE:
+            return '/'
+
     def update(self):
         self.accText.setText(str(self.accumulator))
+        self.storedText.setText(str(self.stored_value) + ' ' + self.op_char(self.last_op))
 
 if __name__ == '__main__':
     QCoreApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
