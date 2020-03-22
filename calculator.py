@@ -65,6 +65,7 @@ class Calculator(QObject):
         self.new_value = True
         self.update()
 
+
     def on_zeroButton_clicked(self):
         self.accumulate(0)
     def on_oneButton_clicked(self):
@@ -87,16 +88,16 @@ class Calculator(QObject):
         self.accumulate(9)
     def on_addButton_clicked(self):
         self.on_equalsButton_clicked()
-        self.last_op = Op.ADD
+        self.set_op(Op.ADD)
     def on_subtractButton_clicked(self):
         self.on_equalsButton_clicked()
-        self.last_op = Op.SUBTRACT
+        self.set_op(Op.SUBTRACT)
     def on_multiplyButton_clicked(self):
         self.on_equalsButton_clicked()
-        self.last_op = Op.MULTIPLY
+        self.set_op(Op.MULTIPLY)
     def on_divideButton_clicked(self):
         self.on_equalsButton_clicked()
-        self.last_op = Op.DIVIDE
+        self.set_op(Op.DIVIDE)
     def on_equalsButton_clicked(self):
         if self.last_op == Op.ADD:
             self.accumulator += self.stored_value
@@ -106,18 +107,16 @@ class Calculator(QObject):
             self.accumulator *= self.stored_value
         elif self.last_op == Op.DIVIDE:
             self.accumulator /= self.stored_value
-        self.update()
         self.new_value = True
         self.last_op = Op.NONE
+        self.update()
 
     def on_clearButton_clicked(self):
         if self.new_value:
             self.stored_value = 0
             self.last_op = Op.NONE
-            self.new_value == False
-        else:
-            self.accumulator = 0
-            self.new_value == True
+        self.accumulator = 0
+        self.new_value = True
         self.update()
 
     def accumulate(self, n):
@@ -125,9 +124,16 @@ class Calculator(QObject):
             self.stored_value = self.accumulator
             self.accumulator = 0
             self.new_value = False
-        else:
-            self.new_value = True
+        self.new_value = False
         self.accumulator = self.accumulator * 10 + n
+        self.update()
+
+    def set_op(self, op):
+        if self.new_value:
+            self.stored_value = self.accumulator
+            self.accumulator = 0
+            self.new_value = False
+        self.last_op = op
         self.update()
 
     def op_char(self, op):
